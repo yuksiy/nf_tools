@@ -1,0 +1,46 @@
+#ルールコマンド	テーブル名(-t)	コマンド	チェイン名	入力I/F	出力I/F	イーサネットタイプ	MAC発信元アドレス	MAC送信先アドレス	IP発信元アドレス	IP送信先アドレス	IPプロトコル	IP発信元ポート	IP送信先ポート	ICMPタイプ/コード	接続状態オプション(任意)	ターゲット(-j)	ターゲット固有オプション(任意)	備考
+
+######################################################################
+# ユーザ定義チェインの設定
+######################################################################
+4 6	filter	N	LOG_DROP
+4 6	filter	A	LOG_DROP													LOG	$_@RULE_CMD@_OPT_LOG_DROP $_@RULE_CMD@_OPT_LIMIT_DROP
+4 6	filter	A	LOG_DROP													DROP
+
+b	filter	N	LOG_DROP
+b	filter	A	LOG_DROP													CONTINUE	$_@RULE_CMD@_OPT_LOG_DROP $_@RULE_CMD@_OPT_LIMIT_DROP
+b	filter	A	LOG_DROP													DROP
+
+######################################################################
+# LOOPBACKインターフェースのパケット許可
+######################################################################
+4	filter	A	INPUT	$IF_LOOPBACK												ACCEPT
+4	filter	A	OUTPUT		$IF_LOOPBACK											ACCEPT
+
+######################################################################
+# TCP・UDP固有のパケット許可・破棄
+######################################################################
+# ANY_PORT_NEW_SET
+4	filter	A	OUTPUT								tcp				$OPT_STATE_NEW_SET	ACCEPT
+4	filter	A	OUTPUT								udp				$OPT_STATE_NEW_SET	ACCEPT
+
+# ANY_PORT_NEW_RESET
+4	filter	A	INPUT								tcp				$OPT_STATE_NEW_RESET	ACCEPT
+4	filter	A	INPUT								udp				$OPT_STATE_NEW_RESET	ACCEPT
+
+# SSH
+4	filter	A	INPUT								tcp		22		$OPT_STATE_NEW_SET	ACCEPT
+
+# HTTP,HTTPS
+4	filter	A	INPUT								tcp		80,443		$OPT_STATE_NEW_SET	ACCEPT
+
+######################################################################
+# デフォルト設定
+######################################################################
+4	filter	A	INPUT													LOG_DROP
+4	filter	A	FORWARD													LOG_DROP
+4	filter	A	OUTPUT													LOG_DROP
+
+6 b	filter	A	INPUT													ACCEPT
+6 b	filter	A	FORWARD													ACCEPT
+6 b	filter	A	OUTPUT													ACCEPT
